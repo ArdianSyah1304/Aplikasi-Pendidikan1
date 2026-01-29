@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISFO AKADEMIK - MA NURUL MUJAHIDAH</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS VARIABLE UNTUK TEMA DINAMIS */
+        :root {
+            --main: #27ae60;
+            --login-bg: #00c3ff;
+            --radius: 12px;
+            --font-size: 14px;
+            --bg: #f4f7f6;
+        }
+
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg); 
+            font-size: var(--font-size);
+            color: #2c3e50;
+        }
+
+        /* LOGIN STYLES */
+        #login-page {
+            background: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+        .user-icon {
+            width: 80px; height: 80px;
+            border: 2px solid #5d6d7e;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .user-icon i { font-size: 40px; color: #5d6d7e; }
+        .input-box {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px;
+        }
+        .input-box i { color: #5d6d7e; width: 30px; border-right: 1px solid #ddd; margin-right: 10px; }
+        .input-box input { border: none; outline: none; width: 100%; font-size: 16px; }
+        .btn-login {
+            width: 100%; padding: 12px;
+            background: var(--login-bg);
+            border: none; border-radius: 8px;
+            color: white; font-weight: bold; cursor: pointer;
+        }
+
+        /* MAIN LAYOUT */
+        #main-app { display: none; min-height: 100vh; }
+        .sidebar {
+            width: 260px; background: #2c3e50;
+            color: white; position: fixed; height: 100vh;
+            transition: 0.3s;
+        }
+        .brand { background: var(--main); padding: 20px; font-weight: bold; text-align: center; }
+        .user-box { padding: 20px; text-align: center; border-bottom: 1px solid #3e4f5f; }
+        .user-box img { width: 60px; border-radius: 50%; border: 2px solid #fff; }
+        
+        .menu-list a {
+            padding: 12px 20px; display: block;
+            color: #bdc3c7; text-decoration: none;
+            border-left: 4px solid transparent; cursor: pointer;
+        }
+        .menu-list a:hover, .menu-list a.active {
+            background: #1a252f; color: white; border-left-color: var(--main);
+        }
+
+        .main-content { margin-left: 260px; padding: 25px; }
+        .header {
+            background: white; padding: 15px 30px;
+            display: flex; justify-content: space-between;
+            border-radius: var(--radius); box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        /* DASHBOARD CARDS */
+        .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { padding: 20px; color: white; border-radius: var(--radius); text-align: center; }
+        .card { background: white; padding: 20px; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 3px solid var(--main); }
+
+        /* TABLES & BUTTONS */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 12px; background: #f8f9fa; border-bottom: 2px solid var(--main); }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-add { background: var(--main); color: white; }
+        .btn-del { background: #e74c3c; color: white; }
+        .btn-edit { background: #f39c12; color: white; }
+
+        /* MODAL */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; }
+        .form-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; background: white; z-index: 1000; padding: 25px; border-radius: var(--radius); }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar span, .user-box div, .brand { display: none; }
+            .main-content { margin-left: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-page">
+        <div class="login-card">
+            <div class="user-icon"><i class="fa fa-user"></i></div>
+            <h1 style="letter-spacing: 5px; font-weight: 300;">LOGIN</h1>
+            <div class="input-box">
+                <i class="fa fa-user"></i>
+                <input type="text" id="user" placeholder="Username">
+            </div>
+            <div class="input-box">
+                <i class="fa fa-lock"></i>
+                <input type="password" id="pass" placeholder="Password">
+            </div>
+            <button class="btn-login" onclick="handleLogin()">LOGIN</button>
+            <p style="font-size: 12px; color: #7f8c8d; margin-top: 15px;">Admin: admin/123 | Siswa: user/123</p>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <div class="sidebar" id="sidebar">
+            <div class="brand">SISFO AKADEMIK</div>
+            <div class="user-box">
+                <img id="user-avatar" src="">
+                <div style="margin-top:10px">
+                    <b id="user-name"></b><br>
+                    <small id="user-role"></small>
+                </div>
+            </div>
+            <div class="menu-list" id="menu-container">
+                </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <span id="instansi-name" style="font-weight:bold; color:var(--main)"></span>
+                <span id="clock"></span>
+            </div>
+
+            <div id="content-area">
+                </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeForm()"></div>
+    <div class="form-popup" id="form-popup">
+        <h3 id="modal-title">Input Data</h3>
+        <form id="data-form">
+            <div id="form-fields"></div>
+            <button type="button" class="btn btn-add" style="width: 100%; margin-top: 10px; padding: 12px;" onclick="saveData()">SIMPAN DATA</button>
+            <button type="button" class="btn btn-del" style="width: 100%; margin-top: 5px; padding: 12px;" onclick="closeForm()">BATAL</button>
+        </form>
+    </div>
+
+    <script>
+        /* ================= DATA & CONFIG ================= */
+        let config = JSON.parse(localStorage.getItem('sisfo_config')) || {
+            namaLembaga: "MA NURUL MUJAHIDAH NW TANJUNG SELOR",
+            warnaUtama: "#27ae60",
+            warnaLogin: "#00c3ff",
+            fontSize: "14px",
+            borderRadius: "12px"
+        };
+
+        let db = JSON.parse(localStorage.getItem('sisfo_db')) || {
+            siswa: [{ id: "001", nama: "Budi Utomo", ttl: "Jakarta, 01-01-2008", jk: "Laki-laki", alamat: "Tanjung Selor" }],
+            guru: [{ id: "G01", nama: "H. Ahmad", mapel: "Fisika", hp: "0852..." }],
+            administrasi: [{ id: "T01", nama: "Budi Utomo", jenis: "SPP Januari", total: "250000", metode: "DANA" }],
+            fasilitas: [{ id: "F01", nama: "Lab Komputer", kondisi: "Baik", jumlah: "25" }],
+            mapel: [{ id: "M01", nama: "Fisika", guru: "H. Ahmad", hari: "Senin" }],
+            pengumuman: [{ id: "P01", judul: "Libur Semester", tanggal: "2026-06-20", isi: "Libur dimulai besok." }]
+        };
+
+        let currentUser = null;
+        let currentFeature = 'dashboard';
+        let editingIndex = -1;
+
+        /* ================= AUTH SYSTEM ================= */
+        function handleLogin() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+
+            if (u === "admin" && p === "123") {
+                currentUser = { nama: "Administrator", role: "admin" };
+            } else if (u === "user" && p === "123") {
+                currentUser = { nama: "Siswa Tamu", role: "siswa" };
+            } else {
+                alert("Login Gagal!"); return;
+            }
+
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            applyConfig();
+            initDashboard();
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        /* ================= CORE ENGINE ================= */
+        function applyConfig() {
+            const root = document.documentElement;
+            root.style.setProperty('--main', config.warnaUtama);
+            root.style.setProperty('--login-bg', config.warnaLogin);
+            root.style.setProperty('--radius', config.borderRadius);
+            root.style.setProperty('--font-size', config.fontSize);
+            document.getElementById('instansi-name').innerText = config.namaLembaga;
+            document.getElementById('user-name').innerText = currentUser.nama;
+            document.getElementById('user-role').innerText = currentUser.role.toUpperCase();
+            document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${currentUser.nama}&background=random`;
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const menus = [
+                { id: 'dashboard', label: 'Dashboard', icon: 'th-large' },
+                { id: 'siswa', label: 'Data Siswa', icon: 'users' },
+                { id: 'guru', label: 'Data Guru', icon: 'user-tie' },
+                { id: 'mapel', label: 'Mata Pelajaran', icon: 'book' },
+                { id: 'administrasi', label: 'Keuangan', icon: 'file-invoice-dollar' },
+                { id: 'fasilitas', label: 'Sarana Aset', icon: 'building' },
+                { id: 'pengumuman', label: 'Pengumuman', icon: 'bullhorn' }
+            ];
+
+            let html = menus.map(m => `
+                <a onclick="navigate('${m.id}')" id="m-${m.id}" class="${currentFeature === m.id ? 'active' : ''}">
+                    <i class="fa fa-${m.icon}"></i> <span>&nbsp; ${m.label}</span>
+                </a>
+            `).join('');
+
+            if (currentUser.role === 'admin') {
+                html += `<a onclick="renderSettings()"><i class="fa fa-cog"></i> <span>&nbsp; Pengaturan</span></a>`;
+            }
+
+            html += `<a onclick="logout()" style="color:#e74c3c"><i class="fa fa-sign-out-alt"></i> <span>&nbsp; Keluar</span></a>`;
+            document.getElementById('menu-container').innerHTML = html;
+        }
+
+        function navigate(feature) {
+            currentFeature = feature;
+            renderMenu();
+            if (feature === 'dashboard') initDashboard();
+            else renderTablePage(feature);
+        }
+
+        /* ================= DASHBOARD ================= */
+        function initDashboard() {
+            const counts = Object.keys(db).map(k => db[k].length);
+            document.getElementById('content-area').innerHTML = `
+                <div class="grid-6">
+                    <div class="stat-card" style="background:#1abc9c">SISWA<h2>${db.siswa.length}</h2></div>
+                    <div class="stat-card" style="background:#3498db">GURU<h2>${db.guru.length}</h2></div>
+                    <div class="stat-card" style="background:#f1c40f">KEU<h2>${db.administrasi.length}</h2></div>
+                    <div class="stat-card" style="background:#9b59b6">MAPEL<h2>${db.mapel.length}</h2></div>
+                    <div class="stat-card" style="background:#e67e22">ASET<h2>${db.fasilitas.length}</h2></div>
+                    <div class="stat-card" style="background:#e74c3c">INFO<h2>${db.pengumuman.length}</h2></div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px">
+                    <div class="card"><h4>Statistik Data</h4><canvas id="chart1"></canvas></div>
+                    <div class="card"><h4>Distribusi</h4><canvas id="chart2"></canvas></div>
+                </div>
+            `;
+
+            new Chart(document.getElementById('chart1'), {
+                type: 'bar',
+                data: {
+                    labels: ['Siswa', 'Guru', 'Keu', 'Mapel', 'Aset', 'Info'],
+                    datasets: [{ label: 'Jumlah', data: counts, backgroundColor: '#3498db' }]
+                }
+            });
+            new Chart(document.getElementById('chart2'), {
+                type: 'pie',
+                data: {
+                    labels: ['Siswa', 'Guru', 'Lainnya'],
+                    datasets: [{ data: [counts[0], counts[1], counts[2]], backgroundColor: ['#1abc9c', '#3498db', '#f1c40f'] }]
+                }
+            });
+        }
+
+        /* ================= TABLE & CRUD ================= */
+        function renderTablePage(feature) {
+            const data = db[feature];
+            const headers = Object.keys(data[0] || { id: "", nama: "" });
+            
+            let html = `
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <h3>Manajemen ${feature.toUpperCase()}</h3>
+                        ${currentUser.role === 'admin' ? `<button class="btn btn-add" onclick="openForm()"><i class="fa fa-plus"></i> Tambah</button>` : ''}
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead><tr>${headers.map(h => `<th>${h.toUpperCase()}</th>`).join('')} <th>AKSI</th></tr></thead>
+                            <tbody>
+                                ${data.map((row, idx) => `
+                                    <tr>
+                                        ${headers.map(h => `<td>${row[h] || '-'}</td>`).join('')}
+                                        <td>
+                                            ${currentUser.role === 'admin' ? `
+                                                <button class="btn btn-edit" onclick="editData('${feature}', ${idx})"><i class="fa fa-edit"></i></button>
+                                                <button class="btn btn-del" onclick="deleteData('${feature}', ${idx})"><i class="fa fa-trash"></i></button>
+                                            ` : '<span style="color:gray">View Only</span>'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        /* ================= MODAL LOGIC ================= */
+        function openForm() {
+            editingIndex = -1;
+            const headers = Object.keys(db[currentFeature][0] || { id: "", nama: "" });
+            document.getElementById('modal-title').innerText = "Tambah " + currentFeature;
+            document.getElementById('form-fields').innerHTML = headers.map(h => `
+                <div class="form-group">
+                    <label>${h.toUpperCase()}</label>
+                    <input type="text" id="field-${h}" placeholder="Masukkan ${h}...">
+                </div>
+            `).join('');
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('form-popup').style.display = 'block';
+        }
+
+        function editData(feature, idx) {
+            openForm();
+            editingIndex = idx;
+            document.getElementById('modal-title').innerText = "Edit " + feature;
+            const item = db[feature][idx];
+            for (let key in item) {
+                if (document.getElementById('field-' + key)) {
+                    document.getElementById('field-' + key).value = item[key];
+                }
+            }
+        }
+
+        function saveData() {
+            const headers = Object.keys(db[currentFeature][0] || { id: "", nama: "" });
+            let newItem = {};
+            headers.forEach(h => {
+                newItem[h] = document.getElementById('field-' + h).value;
+            });
+
+            if (editingIndex === -1) db[currentFeature].push(newItem);
+            else db[currentFeature][editingIndex] = newItem;
+
+            localStorage.setItem('sisfo_db', JSON.stringify(db));
+            closeForm();
+            navigate(currentFeature);
+        }
+
+        function deleteData(feature, idx) {
+            if (confirm("Hapus data ini?")) {
+                db[feature].splice(idx, 1);
+                localStorage.setItem('sisfo_db', JSON.stringify(db));
+                navigate(feature);
+            }
+        }
+
+        function closeForm() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('form-popup').style.display = 'none';
+        }
+
+        /* ================= SETTINGS ================= */
+        function renderSettings() {
+            document.getElementById('content-area').innerHTML = `
+                <div class="card" style="max-width: 500px">
+                    <h3>🎨 Pengaturan Tampilan</h3>
+                    <div class="form-group"><label>Nama Instansi</label><input id="s-nama" value="${config.namaLembaga}"></div>
+                    <div class="form-group"><label>Warna Utama</label><input type="color" id="s-warna" value="${config.warnaUtama}"></div>
+                    <div class="form-group"><label>Warna Login</label><input type="color" id="s-login" value="${config.warnaLogin}"></div>
+                    <button class="btn btn-add" style="width:100%" onclick="saveSettings()">SIMPAN PERUBAHAN</button>
+                </div>
+            `;
+        }
+
+        function saveSettings() {
+            config.namaLembaga = document.getElementById('s-nama').value;
+            config.warnaUtama = document.getElementById('s-warna').value;
+            config.warnaLogin = document.getElementById('s-login').value;
+            localStorage.setItem('sisfo_config', JSON.stringify(config));
+            alert("Pengaturan Berhasil Disimpan!");
+            location.reload();
+        }
+
+        // Jam Realtime
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleString('id-ID');
+        }, 1000);
+    </script>
+</body>
+</html>
